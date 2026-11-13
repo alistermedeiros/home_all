@@ -1,0 +1,71 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    function dono(uid) {
+      return autenticado() && request.auth.uid == uid;
+    }
+
+    match /usuarios/{uid} {
+      allow read: if autenticado();
+      allow create: if dono(uid);
+      allow update: if dono(uid);
+      allow delete: if false;
+    }
+
+    match /servicos/{id} {
+      allow read: if autenticado();
+
+      allow create: if autenticado()
+        && request.resource.data.prestadorId == request.auth.uid;
+
+      allow update: if autenticado()
+        && resource.data.prestadorId == request.auth.uid
+        && request.resource.data.prestadorId == request.auth.uid;
+
+      allow delete: if autenticado()
+        && resource.data.prestadorId == request.auth.uid;
+    }
+
+    match /favoritos/{id} {
+      allow read: if autenticado()
+        && resource.data.clienteId == request.auth.uid;
+
+      allow create: if autenticado()
+        && request.resource.data.clienteId == request.auth.uid;
+
+      allow delete: if autenticado()
+        && resource.data.clienteId == request.auth.uid;
+
+      allow update: if false;
+    }
+
+    match /contratacoes/{id} {
+      allow read: if autenticado()
+        && (
+          resource.data.clienteId == request.auth.uid ||
+          resource.data.prestadorId == request.auth.uid
+        );
+
+      allow create: if autenticado()
+        && request.resource.data.clienteId == request.auth.uid
+        && request.resource.data.status == 'solicitada';
+
+      // Alterações de status devem passar por Cloud Functions.
+      allow update, delete: if false;
+    }
+
+    match /avaliacoes/{id} {
+      allow read: if autenticado();
+
+      // Somente Cloud Functions podem publicar avaliações.
+      allow create, update, delete: if false;
+    }
+  }
+}
