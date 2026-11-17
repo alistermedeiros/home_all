@@ -29,21 +29,82 @@ export default function Home({ navigation }) {
   const [servicos, setServicos] = useState([]);
   const [busca, setBusca] = useState('');
   const [categoria, setCategoria] = useState('');
+  const [resumoAvaliacoes, setResumoAvaliacoes] = useState({});
 
+  // Carrega os serviços ativos
   useEffect(() => {
     const q = query(
       collection(db, 'servicos'),
       where('ativo', '==', true)
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setServicos(
-        snapshot.docs.map(item => ({
-          id: item.id,
-          ...item.data(),
-        }))
-      );
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        setServicos(
+          snapshot.docs.map(item => ({
+            id: item.id,
+            ...item.data(),
+          }))
+        );
+      },
+      erro => {
+        console.log('Erro ao carregar serviços:', erro);
+      }
+    );
+
+    return unsubscribe;
+  }, []);
+
+  // Carrega as avaliações e calcula a média de cada serviço
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, 'avaliacoes'),
+      snapshot => {
+        const agrupadas = {};
+
+        snapshot.docs.forEach(d => {
+          const avaliacao = d.data();
+          const nota = Number(avaliacao.nota);
+          const servicoId = avaliacao.servicoId;
+
+          if (
+            !servicoId ||
+            !Number.isFinite(nota) ||
+            nota < 1 ||
+            nota > 5
+          ) {
+            return;
+          }
+
+          if (!agrupadas[servicoId]) {
+            agrupadas[servicoId] = {
+              soma: 0,
+              total: 0,
+            };
+          }
+
+          agrupadas[servicoId].soma += nota;
+          agrupadas[servicoId].total += 1;
+        });
+
+        const resumo = {};
+
+        Object.keys(agrupadas).forEach(servicoId => {
+          const dados = agrupadas[servicoId];
+
+          resumo[servicoId] = {
+            media: dados.soma / dados.total,
+            total: dados.total,
+          };
+        });
+
+        setResumoAvaliacoes(resumo);
+      },
+      erro => {
+        console.log('Erro ao carregar avaliações:', erro);
+      }
+    );
 
     return unsubscribe;
   }, []);
@@ -174,50 +235,61 @@ export default function Home({ navigation }) {
         </Text>
       </View>
 
-      {filtrados.map(item => (
-        <TouchableOpacity
-          key={item.id}
-          style={styles.card}
-          onPress={() =>
-            navigation.navigate('DetalhesServico', {
-              servicoId: item.id,
-            })
-          }
-        >
-          {item.imagens?.[0] ? (
-            <Image
-              source={{ uri: item.imagens[0] }}
-              style={styles.foto}
-            />
-          ) : (
-            <View style={styles.fotoVazia}>
-              <Text style={{ fontSize: 35 }}>🛠️</Text>
+      {filtrados.map(item => {
+        const avaliacao = resumoAvaliacoes[item.id];
+        const media = avaliacao?.media || 0;
+        const total = avaliacao?.total || 0;
+
+        return (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.card}
+            onPress={() =>
+              navigation.navigate('DetalhesServico', {
+                servicoId: item.id,
+              })
+            }
+          >
+            {item.imagens?.[0] ? (
+              <Image
+                source={{ uri: item.imagens[0] }}
+                style={styles.foto}
+              />
+            ) : (
+              <View style={styles.fotoVazia}>
+                <Text style={{ fontSize: 35 }}>🛠️</Text>
+              </View>
+            )}
+
+            <View style={styles.cardConteudo}>
+              <Text style={styles.cardTitulo}>
+                {item.titulo}
+              </Text>
+
+              <Text style={styles.cardDescricao}>
+                {item.categoria}
+              </Text>
+
+              <Text style={styles.cardLocal}>
+                📍 {item.bairro || ''} {item.cidade || ''}
+              </Text>
+
+              <View style={styles.avaliacao}>
+                <Estrelas valor={Math.round(media)} />
+                <Text style={styles.totalAvaliacoes}>
+                  {total} avaliações
+                </Text>
+              </View>
+
+              <Text style={styles.preco}>
+                {item.preco
+                  ? `A partir de R$ ${Number(item.preco).toFixed(2)}`
+                  : 'Consultar preço'}
+              </Text>
             </View>
-          )}
-
-          <View style={styles.cardConteudo}>
-            <Text style={styles.cardTitulo}>
-              {item.titulo}
-            </Text>
-
-            <Text style={styles.cardDescricao}>
-              {item.categoria}
-            </Text>
-
-            <Text style={styles.cardLocal}>
-              📍 {item.bairro || ''} {item.cidade || ''}
-            </Text>
-
-            <Estrelas valor={Math.round(item.mediaAvaliacoes || 0)} />
-
-            <Text style={styles.preco}>
-              {item.preco
-                ? `A partir de R$ ${Number(item.preco).toFixed(2)}`
-                : 'Consultar preço'}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      ))}
+          </TouchableOpacity>
+        );
+      })}
 
       {filtrados.length === 0 && (
         <Text style={styles.vazio}>
@@ -413,6 +485,15 @@ const styles = StyleSheet.create({
   cardLocal: {
     color: CORES.textoSecundario,
     fontSize: 11,
+  },
+  avaliacao: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  totalAvaliacoes: {
+    color: CORES.textoSecundario,
+    fontSize: 10,
   },
   preco: {
     color: CORES.escura,

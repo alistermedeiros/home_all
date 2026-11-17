@@ -21,9 +21,12 @@ export default function Categorias({ navigation }) {
         renderItem={({ item, index }) => (
           <TouchableOpacity
             style={styles.card}
-            onPress={() => navigation.navigate('Buscar', {
-              categoria: item,
-            })}
+            onPress={() => navigation.navigate('Principal', {
+  screen: 'Buscar',
+  params: {
+    categoria: item,
+  },
+})}
           >
             <Text style={styles.icone}>{icones[index]}</Text>
             <Text style={styles.nome}>{item}</Text>
