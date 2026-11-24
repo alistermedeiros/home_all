@@ -1,25 +1,25 @@
+
 import { NavigationContainer } from '@react-navigation/native';
-import { ActivityIndicator, View } from 'react-native';
+import {
+    Image,
+    StyleSheet,
+    View,
+} from 'react-native';
 
 import { AuthProvider, useAuth } from './src/AuthContext';
 import Navegacao from './src/Navegacao';
 import NavegacaoAuth from './src/NavegacaoAuth';
-import { CORES } from './src/cores';
 
 function Aplicativo() {
   const { usuario, carregando } = useAuth();
 
   if (carregando) {
     return (
-      <View style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: CORES.fundo,
-      }}>
-        <ActivityIndicator
-          size="large"
-          color={CORES.primaria}
+      <View style={styles.carregando}>
+        <Image
+          source={require('./assets/images/logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
         />
       </View>
     );
@@ -39,3 +39,17 @@ export default function App() {
     </AuthProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  carregando: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+
+  logo: {
+    width: 300,
+    height: 300,
+  },
+});

@@ -2,6 +2,7 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 
 import {
+    getAuth,
     getReactNativePersistence,
     initializeAuth,
 } from 'firebase/auth';
@@ -20,15 +21,21 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
+console.log('API KEY carregada pelo Expo:', !!firebaseConfig.apiKey);
+console.log('Project ID:', firebaseConfig.projectId);
+
 const app = getApps().length
   ? getApp()
   : initializeApp(firebaseConfig);
 
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(
-    ReactNativeAsyncStorage
-  ),
-});
-
+export const auth = (() => {
+  try {
+    return initializeAuth(app, {
+      persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+    });
+  } catch (error) {
+    return getAuth(app);
+  }
+})();
 export const db = getFirestore(app);
 export const storage = getStorage(app);
