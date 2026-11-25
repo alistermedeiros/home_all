@@ -48,6 +48,19 @@ To learn more about developing your project with Expo, look at the following res
 - [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
 - [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
+## Build an Android APK on Windows
+
+From the project root, run:
+
+```bat
+scripts\build-android-apk.cmd
+```
+
+The standalone APK is written to `android\app\build\outputs\apk\release\app-release.apk`.
+The script keeps Gradle's cache in a sibling `gradle-home` directory to avoid Windows
+path-encoding problems. This local build is signed with the debug key and is for testing;
+use the EAS production profile and production signing credentials for Play Store releases.
+
 ## Join the community
 
 Join our community of developers creating universal apps.
