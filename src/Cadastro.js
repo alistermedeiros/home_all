@@ -1,10 +1,15 @@
 
 import { useState } from 'react';
+
 import {
-    Alert, ScrollView,
+    Alert,
+    ScrollView,
     StyleSheet,
-    Text, TextInput, TouchableOpacity
+    Text,
+    TextInput,
+    TouchableOpacity,
 } from 'react-native';
+
 import { useAuth } from './AuthContext';
 import { CORES } from './cores';
 
@@ -20,47 +25,79 @@ export default function Cadastro({ navigation }) {
 
   async function registrar() {
     if (!nome.trim() || !email.trim() || !senha) {
-  return Alert.alert(
-    'Atenção',
-    'Preencha os campos obrigatórios.'
-  );
-}
+      return Alert.alert(
+        'Atenção',
+        'Preencha os campos obrigatórios.'
+      );
+    }
 
     if (senha.length < 6) {
-      return Alert.alert('Senha inválida', 'Use pelo menos 6 caracteres.');
+      return Alert.alert(
+        'Senha inválida',
+        'Use pelo menos 6 caracteres.'
+      );
     }
 
     if (senha !== confirmar) {
-      return Alert.alert('Atenção', 'As senhas não coincidem.');
+      return Alert.alert(
+        'Atenção',
+        'As senhas não coincidem.'
+      );
     }
 
     try {
       setLoading(true);
-      await cadastrar({ nome, email, telefone, senha });
+
+      await cadastrar({
+        nome: nome.trim(),
+        email: email.trim(),
+        telefone: telefone.trim(),
+        senha,
+      });
+
     } catch (error) {
-  console.log('Erro no cadastro:', error);
+      console.log('Erro no cadastro:', error);
 
-  const mensagens = {
-    'auth/email-already-in-use': 'Este e-mail já está cadastrado.',
-    'auth/invalid-email': 'Informe um e-mail válido.',
-    'auth/weak-password': 'A senha é muito fraca.',
-    'auth/network-request-failed': 'Verifique sua conexão com a internet.',
-  };
+      const mensagens = {
+        'auth/email-already-in-use':
+          'Este e-mail já está cadastrado.',
 
-  Alert.alert(
-    'Erro ao cadastrar',
-    mensagens[error.code] || 'Não foi possível criar sua conta.'
-  );
-} finally {
+        'auth/invalid-email':
+          'Informe um e-mail válido.',
+
+        'auth/weak-password':
+          'A senha é muito fraca.',
+
+        'auth/network-request-failed':
+          'Verifique sua conexão com a internet.',
+      };
+
+      Alert.alert(
+        'Erro ao cadastrar',
+        mensagens[error.code] ||
+          'Não foi possível criar sua conta.'
+      );
+
+    } finally {
       setLoading(false);
     }
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={styles.logo}>AIKO</Text>
-      <Text style={styles.sub}>HOME SERVICE</Text>
-      <Text style={styles.titulo}>Crie sua conta</Text>
+
+      <Text style={styles.sub}>
+        HOME SERVICE
+      </Text>
+
+      <Text style={styles.titulo}>
+        Crie sua conta
+      </Text>
+
       <Text style={styles.descricao}>
         Encontre profissionais ou ofereça seus serviços.
       </Text>
@@ -68,41 +105,58 @@ export default function Cadastro({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Nome completo"
+        placeholderTextColor="#777777"
         value={nome}
         onChangeText={setNome}
+        autoCapitalize="words"
+        selectionColor={CORES.primaria}
+        underlineColorAndroid="transparent"
       />
 
       <TextInput
         style={styles.input}
         placeholder="E-mail"
+        placeholderTextColor="#777777"
         keyboardType="email-address"
         autoCapitalize="none"
+        autoCorrect={false}
         value={email}
         onChangeText={setEmail}
+        selectionColor={CORES.primaria}
+        underlineColorAndroid="transparent"
       />
 
       <TextInput
         style={styles.input}
         placeholder="Telefone"
+        placeholderTextColor="#777777"
         keyboardType="phone-pad"
         value={telefone}
         onChangeText={setTelefone}
+        selectionColor={CORES.primaria}
+        underlineColorAndroid="transparent"
       />
 
       <TextInput
         style={styles.input}
         placeholder="Senha"
+        placeholderTextColor="#777777"
         secureTextEntry
         value={senha}
         onChangeText={setSenha}
+        selectionColor={CORES.primaria}
+        underlineColorAndroid="transparent"
       />
 
       <TextInput
         style={styles.input}
         placeholder="Confirmar senha"
+        placeholderTextColor="#777777"
         secureTextEntry
         value={confirmar}
         onChangeText={setConfirmar}
+        selectionColor={CORES.primaria}
+        underlineColorAndroid="transparent"
       />
 
       <TouchableOpacity
@@ -115,9 +169,14 @@ export default function Cadastro({ navigation }) {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.link}>Já tenho uma conta. Entrar</Text>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Login')}
+      >
+        <Text style={styles.link}>
+          Já tenho uma conta. Entrar
+        </Text>
       </TouchableOpacity>
+
     </ScrollView>
   );
 }
@@ -129,46 +188,58 @@ const styles = StyleSheet.create({
     padding: 25,
     backgroundColor: CORES.fundo,
   },
+
   logo: {
     fontSize: 48,
     fontWeight: '900',
     color: CORES.primaria,
     textAlign: 'center',
   },
+
   sub: {
     textAlign: 'center',
     color: CORES.escura,
     letterSpacing: 3,
     marginBottom: 35,
   },
+
   titulo: {
     fontSize: 25,
     fontWeight: 'bold',
     color: CORES.escura,
   },
+
   descricao: {
-    color: '#777',
+    color: '#777777',
     marginVertical: 12,
   },
+
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginTop: 13,
     borderWidth: 1,
     borderColor: CORES.borda,
+    color: '#023E55',
+    fontSize: 16,
+    height: 60,
+    includeFontPadding: true,
   },
+
   botao: {
     backgroundColor: CORES.primaria,
     padding: 17,
     borderRadius: 12,
     marginTop: 25,
   },
+
   botaoTexto: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontWeight: 'bold',
     textAlign: 'center',
   },
+
   link: {
     textAlign: 'center',
     color: CORES.escura,
